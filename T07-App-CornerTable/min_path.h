@@ -30,7 +30,7 @@ bool isConected(Triangle A, Triangle B){
     return cont>1;
 }
 
-//ALGORITMO BSF
+//ALGORITMO BFS
 
 void buildAdjMatBFS(CornerTable* CT, vector<vector<unsigned int>> &adjMat){
     const CornerType* triangleList = CT->getTriangleList();
@@ -102,6 +102,8 @@ void bfsPath(vector<unsigned int> &path, vector<vector<unsigned int>> adj, int s
 
     // vector path stores the shortest path
     int crawl = dest;
+    path.resize(adj.size());
+    fill(path.begin(), path.end(), -1);
     path.push_back(crawl);
     while (pred[crawl] != -1) {
         path.push_back(pred[crawl]);
@@ -118,7 +120,7 @@ void bfsPath(vector<unsigned int> &path, vector<vector<unsigned int>> adj, int s
         cout << path[i] << " ";
 }
 
-void min_path_BSF(vector<unsigned int> &path, CornerTable *CT, int o, int d) {
+void min_path_BFS(vector<unsigned int> &path, CornerTable *CT, int o, int d) {
 
     vector<vector<unsigned int>> adjmat; buildAdjMatBFS(CT, adjmat);
     bfsPath(path, adjmat, o, d, CT->getNumTriangles());

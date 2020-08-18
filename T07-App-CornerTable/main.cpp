@@ -183,10 +183,10 @@ void buildPath(int o, int d){
     vector<unsigned int> path;
     const CornerType *trianglesPositions = CT->getTriangleList();
 
-    //min_path_BSF(path, CT, o, d);
-    min_path(path, CT, o, d);
+    min_path_BFS(path, CT, o, d);
+    //min_path(path, CT, o, d);
 
-    PrintDijkstraPath(path, o ,d);
+    //PrintDijkstraPath(path, o ,d);
 
     int aux = path[d];
     path_indices.push_back(trianglesPositions[d*3]);
