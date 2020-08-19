@@ -18,7 +18,7 @@
 #include "min_path.h"
 
 #define numVAOs 1
-#define numVBOs 1 
+#define numVBOs 1
 #define numEBOs 2
 
 #define PI 3.14
@@ -48,7 +48,7 @@ int o, d;
 int op_model;
 int op_algor;
 
-/*------------------------------CONTROLES---------------------------*/
+/*------------------------------ [CONTROLES] ---------------------------*/
 bool dragging = false;
 double offsetX = 0.0;
 double offsetY = 0.0;
@@ -100,7 +100,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 }
 /*------------------------------------------------------------------*/
 
-/*------------------------------IMGUI-------------------------------*/
+/*------------------------------ [IMGUI] -------------------------------*/
     bool
     ALL_TRIANG_BORDER = false,
     PRINT_PATH = true,
@@ -136,18 +136,18 @@ void readMeshFiles() {
 
     const CornerType numberTriangles = ntriangle;
     const CornerType numberVertices = npoint;
-    
+
     CornerType* triangleList = new CornerType[3*ntriangle];
     for (int i = 0; i <ntriangle; ++i)
         fin>>var0>>triangleList[i*3]>>triangleList[i*3+1]>>triangleList[i*3+2];
     cout<<"[LOG]\tIndices triangulos leidos"<<endl;
-    
+
     int numberCoordinatesByVertex = 3;
-    
+
     CornerTable *ct = new CornerTable(triangleList, vertexList,
         numberTriangles, numberVertices, numberCoordinatesByVertex);
     cout<<"[LOG]\tCorner Table creada"<<endl<<endl;
-    
+
     descFile +="_________________________[OFF]_________________________ \n";
     descFile +="\t\t (*) File: " + offFilePath + "\n";
     descFile +="\t\t (*) Num vertices: " + to_string(npoint) + "\n";
@@ -186,7 +186,7 @@ void setupVertices(void) {
 
     double* vertexPositions = CT->getAttributes();
     const CornerType *trianglesPositions = CT->getTriangleList();
-    
+
     for (unsigned int i=0; i<CT->getNumberVertices()*3; i++) // normalizar coordenadas
         vertexPositions[i] *= 1/(normalize*2);
 
@@ -200,7 +200,7 @@ void setupVertices(void) {
     glGenBuffers(numEBOs, ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo[0]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, CT->getNumTriangles()*3*sizeof(CornerType), &trianglesPositions[0], GL_STATIC_DRAW);
- 
+
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo[1]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, path_indices.size()*3*sizeof(CornerType), &path_indices[0], GL_STATIC_DRAW);
 }
@@ -215,7 +215,7 @@ void init(GLFWwindow *window) {
 
     renderingProgram = Utils::createShaderProgram("vertShader.glsl", "fragShader.glsl");
     glUseProgram(renderingProgram);
-    
+
     buildPath(o, d);
     setupVertices();
 
@@ -289,13 +289,13 @@ void display(GLFWwindow *window, double currentTime) {
     mvMat = vMat * mMat;
 	glUniformMatrix4fv(glGetUniformLocation(renderingProgram, "mv_matrix"), 1, GL_FALSE, glm::value_ptr(mvMat));
 
-    // ------------------ VBO VERTICES - Bind vertices ---------------------------------
+    // ------------------ [VBO VERTICES - Bind vertices] ---------------------------------
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
     glVertexAttribPointer(0, 3, GL_DOUBLE, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
     glm::vec3 color1;
 
-    // ------------------ EBO ALL Triangles - Bind EBO and PAINT MESH ------------------
+    // ------------------ [EBO ALL Triangles - Bind EBO and PAINT MESH] ------------------
     color1 = glm::vec3(surf_color.x, surf_color.y, surf_color.z);
     glUniform3fv(glGetUniformLocation(renderingProgram, "u_color"), 1, value_ptr(color1));
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo[0]);
@@ -308,7 +308,7 @@ void display(GLFWwindow *window, double currentTime) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     if (ALL_TRIANG_BORDER){
-        // ------------------ PAINT LINES (ALL TRIANGLES BORDER) ----------------------
+        // ------------------ [PAINT LINES (ALL TRIANGLES BORDER)] ----------------------
         color1 = glm::vec3(1.0, 1.0, 1.0);
         glUniform3fv(glGetUniformLocation(renderingProgram, "u_color"), 1, value_ptr(color1));
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo[0]);
@@ -324,7 +324,7 @@ void display(GLFWwindow *window, double currentTime) {
     }
 
     if (PRINT_PATH){
-        // ------------------ EBO PATH Triangles - Bind EBO and PAINT PATH ------------
+        // ------------------ [EBO PATH Triangles - Bind EBO and PAINT PATH] ------------
         color1 = glm::vec3(path_color.x, path_color.y, path_color.z);
         glUniform3fv(glGetUniformLocation(renderingProgram, "u_color"), 1, value_ptr(color1));
 
@@ -339,7 +339,7 @@ void display(GLFWwindow *window, double currentTime) {
     }
 
     if (PRINT_PATH_TRIANG_BORDER){
-        // ------------------ PAINT LINES (PATH TRIANGLES BORDER) --------------------
+        // ------------------ [PAINT LINES (PATH TRIANGLES BORDER)] --------------------
         color1 = glm::vec3(1.0, 0.0, 0.0);
         glUniform3fv(glGetUniformLocation(renderingProgram, "u_color"), 1, value_ptr(color1));
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo[1]);
@@ -355,13 +355,12 @@ void display(GLFWwindow *window, double currentTime) {
     }
 
     if (PRINT_VERT){
-        // ------------------ PAINT POINTS (TRIANGLES VERTICES) -----------------------
+        // ------------------ [PAINT POINTS (TRIANGLES VERTICES)] -----------------------
         color1 = glm::vec3(0.0, 0.0, 0.0);
         glUniform3fv(glGetUniformLocation(renderingProgram, "u_color"), 1, value_ptr(color1));
         glPointSize(4.0);
         glDrawArrays(GL_POINTS, 0, CT->getNumberVertices());
     }
-
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

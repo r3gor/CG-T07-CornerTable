@@ -12,7 +12,6 @@ struct Triangle{
     unsigned int vertex1, vertex2, vertex3;
 };
 
-
 #define INF 9999
 
 bool isConected(Triangle A, Triangle B){
@@ -30,7 +29,7 @@ bool isConected(Triangle A, Triangle B){
     return cont>1;
 }
 
-/** Algoritmo Floyd-Warshall **/
+/* Algoritmo Floyd Warshall */
 
 // Valor arbitario (PARAMETRIZAR DESPUES)
 #define verticesGrafo 4
@@ -66,7 +65,7 @@ void floydWarshall(int grafo[][verticesGrafo]){
 	        }
 	    }
 
-	    // se aden uno a uno los vertices a un set de vertices intermedios.
+	    // se agnaden uno a uno los vertices a un set de vertices intermedios.
 	    for(k=0; k<verticesGrafo; k++){
 	        // se toma a los vertices como entrada
 	        for(i=0; i<verticesGrafo; i++){
@@ -82,15 +81,22 @@ void floydWarshall(int grafo[][verticesGrafo]){
 	    }
 	    imprimirMatrizDistancias(distancias);
 }
-/******************************/
 
-//ALGORITMO BFS
+/*  ------------ ALGORITMO BFS ------------ */
 
-void buildAdjMatBFS(CornerTable* CT, vector<vector<unsigned int>> &adjMat){
+void add_edge(vector<int> adj[], int src, int dest)
+{
+    adj[src].push_back(dest);
+    adj[dest].push_back(src);
+}
+
+
+void buildAdjMatBFS(CornerTable* CT, vector<int> adjMat[]){
     const CornerType* triangleList = CT->getTriangleList();
     unsigned int numTriangles = CT->getNumTriangles();
-    adjMat.resize(numTriangles);
-    fill(adjMat.begin(), adjMat.end(), vector<unsigned int>(numTriangles, 0));
+
+    // adjMat.resize(numTriangles);
+    // fill(adjMat.begin(), adjMat.end(), vector<unsigned int>(numTriangles, 0));
 
     for (unsigned int i=0; i<numTriangles; i++){
         Triangle v{triangleList[3*i],
@@ -103,15 +109,13 @@ void buildAdjMatBFS(CornerTable* CT, vector<vector<unsigned int>> &adjMat){
                         triangleList[3*j + 2]
                         };
             if (isConected(v, comp)){
-                adjMat[i][j] = j;
-                adjMat[j][i] = i;
+                add_edge(adjMat, i, j);
             }
         }
     }
 }
 
-bool BFS(vector<vector<unsigned int>> adj, int src, int dest, int v,
-         int pred[], int dist[]){
+bool BFS(vector<int> adj[], int src, int dest, int v, int pred[], int dist[]){
 
     list<int> queue; // a queue of vertices
     bool visited[v];
@@ -146,49 +150,47 @@ bool BFS(vector<vector<unsigned int>> adj, int src, int dest, int v,
     return false;
 }
 
-void bfsPath(vector<unsigned int> &path, vector<vector<unsigned int>> adj, int s,
+void bfsPath(vector<unsigned int> &path, vector<int> adj[], int s,
                            int dest, int v){
     int pred[v], dist[v];
     if (!BFS(adj, s, dest, v, pred, dist)) {
         cout << "El origen y el destino no estan conectados.";
         return;
     }
-    // vector path stores the shortest path
-        int crawl = dest;
-        path.push_back(crawl);
-        while (pred[crawl] != -1) {
-            path.push_back(pred[crawl]);
-            crawl = pred[crawl];
-        }
 
-        // distance from source is in distance array
-        cout << "Shortest path length is : "
-             << dist[dest];
+    int crawl = dest;
+    path.push_back(crawl);
+    while (pred[crawl] != -1) {
+        path.push_back(pred[crawl]);
+        crawl = pred[crawl];
+    }
 
-        // printing path from source to destination
-        cout << "\nPath is::\n";
-        for (int i=path.size()-1; i>0; i--)
-            cout << path[i] << " -> ";
-        cout<<path[0]<<endl;
+    cout << "\tCantidad de triangulos en el camino: "<< dist[dest]<<endl;
+
+    cout << "\n\tCamino mas corto encontrado: \n";
+    for (int i=path.size()-1; i>0; i--)
+        cout << path[i] << " -> ";
+    cout<<path[0]<<endl;
 }
 
 void MinPathBFS(vector<unsigned int> &path, CornerTable *CT, int o, int d) {
-    vector<vector<unsigned int>> adjmat; buildAdjMatBFS(CT, adjmat);
+    vector<int> adjmat[CT->getNumTriangles()]; buildAdjMatBFS(CT, adjmat);
     bfsPath(path, adjmat, o, d, CT->getNumTriangles());
 }
 
 
-// ALGORITMO DIJKSTRA
-void PrintPathPred(vector<unsigned int> pred, int o, int d){
-    cout<<"Camino: "<<endl;
-    int r = pred[d];
-    cout<<d<<" <- ";
-    while(r > -1 && r != o){
-        cout<<r<<" <- ";
-        r = pred[r];
-    }
-    cout<<o<<endl;
-}
+/*  ------------ ALGORITMO DIJKSTRA ------------ */
+
+// void PrintPathPred(vector<unsigned int> pred, int o, int d){
+//     cout<<"Camino: "<<endl;
+//     int r = pred[d];
+//     cout<<d<<" <- ";
+//     while(r > -1 && r != o){
+//         cout<<r<<" <- ";
+//         r = pred[r];
+//     }
+//     cout<<o<<endl;
+// }
 
 int minCost(vector<unsigned int> cost, vector<bool> marked){
     int min = INF;
@@ -268,7 +270,6 @@ void MinPathDijkstra(vector<unsigned int> &path, CornerTable *CT, int o, int d) 
     }
     vector<unsigned int> pred;
     DijkstraPath(pred, adjmat, o, d);
-    PrintPathPred(pred, o, d);
     int r = pred[d];
     path.push_back(d);
     while(r > -1 && r != o){
@@ -276,5 +277,13 @@ void MinPathDijkstra(vector<unsigned int> &path, CornerTable *CT, int o, int d) 
         r = pred[r];
     }
     path.push_back(o);
+    cout << "__________________[CAMINO ENCONTRADO]__________________"<<endl;
+    cout << "\tCantidad de triangulos en el camino: "<<path.size()-1<<endl;
+    cout << "\tCamino mas corto encontrado: \n";
+    cout << "_______________________________________________________"<<endl;
+
+    for (int i=path.size()-1; i>0; i--)
+        cout << path[i] << " -> ";
+    cout<<path[0]<<endl;
 }
 
