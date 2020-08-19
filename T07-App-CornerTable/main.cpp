@@ -12,6 +12,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <chrono>
 
 #include "Utils.hpp"
 #include "CornerTable.h"
@@ -27,6 +28,7 @@
 double normalize = 1;
 
 using namespace std;
+using namespace std::chrono;
 
 GLuint renderingProgram;
 GLuint vao[numVAOs];
@@ -44,6 +46,7 @@ CornerTable *CT;
 string offFilePath = "offFiles/torus.off";
 vector<unsigned int> path_indices;
 string descFile = "";
+duration<double> diff;
 int o, d;
 int op_model;
 int op_algor;
@@ -172,8 +175,19 @@ void buildPath(int o, int d){
     vector<unsigned int> path;
     const CornerType *trianglesPositions = CT->getTriangleList();
 
-    if (op_algor == DIJKSTRA) MinPathDijkstra(path, CT, o, d);
-    if (op_algor == BFS)      MinPathBFS(path, CT, o, d);
+    auto start = high_resolution_clock::now();
+
+    if (op_algor == DIJKSTRA) {
+    	cout<<"[LOG]\t Algoritmo de Dijkstra"<<endl;
+    	MinPathDijkstra(path, CT, o, d);
+    }
+    if (op_algor == BFS){
+    	cout<<"[LOG]\t Algoritmo BFS"<<endl;
+    	MinPathBFS(path, CT, o, d);
+    }
+
+    auto stop = high_resolution_clock::now();
+    diff = duration_cast<microseconds>(stop - start);
 
     for(unsigned int i =0; i<path.size(); i++){
         path_indices.push_back(trianglesPositions[path[i]*3]);
@@ -313,7 +327,7 @@ void display(GLFWwindow *window, double currentTime) {
         glUniform3fv(glGetUniformLocation(renderingProgram, "u_color"), 1, value_ptr(color1));
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo[0]);
 
-        for(int i=0; i<CT->getNumTriangles() ; i++){
+        for(unsigned int i=0; i<CT->getNumTriangles() ; i++){
             glDrawElements(
                 GL_LINE_LOOP,
                 3,
@@ -408,13 +422,13 @@ int main() {
     }
     cout<<"_______________________________________________________"<<endl;
     cout<<"Opcion: "; cin>>op_model;
-    if (op_model == 1) normalize = 0.5*0.5*0.25;
+    if (op_model == 3) normalize = 0.5*0.5*0.25;
     offFilePath = offFiles[op_model-1];
     readMeshFiles();
     cout<<endl;
     cout<<"________________[Algoritmos disponibles]_______________"<<endl;
-    cout<<"\t 1. Dijkstra - Tiempo: O()"<<endl;
-    cout<<"\t 2. Breadth First Search (BFS) - Tiempo: O()"<<endl;
+    cout<<"\t 1. Dijkstra - Tiempo: O(n^2)"<<endl;
+    cout<<"\t 2. Breadth First Search (BFS) - Tiempo: O(n)"<<endl;
     cout<<"_______________________________________________________"<<endl;
     cout<<"Opcion: "; cin>>op_algor;
     cout<<"_______________[Calculo del Camino Minimo]_____________"<<endl;
@@ -437,7 +451,8 @@ int main() {
     glfwSwapInterval(0);
 
     init(window);
-
+    cout<<"\t(*) Tiempo total: "<<diff.count()<<" seg."<<endl;
+    cout << "_______________________________________________________"<<endl;
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         display(window, glfwGetTime());

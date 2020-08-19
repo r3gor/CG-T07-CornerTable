@@ -4,13 +4,17 @@
 #include <iostream>
 #include <vector>
 #include <set>
-#include <bits/stdc++.h>
+#include <chrono>
+#include <list>
 
 using namespace std;
+using namespace chrono;
 
 struct Triangle{
     unsigned int vertex1, vertex2, vertex3;
 };
+
+int __d_bfs;
 
 #define INF 9999
 
@@ -90,13 +94,9 @@ void add_edge(vector<int> adj[], int src, int dest)
     adj[dest].push_back(src);
 }
 
-
 void buildAdjMatBFS(CornerTable* CT, vector<int> adjMat[]){
     const CornerType* triangleList = CT->getTriangleList();
     unsigned int numTriangles = CT->getNumTriangles();
-
-    // adjMat.resize(numTriangles);
-    // fill(adjMat.begin(), adjMat.end(), vector<unsigned int>(numTriangles, 0));
 
     for (unsigned int i=0; i<numTriangles; i++){
         Triangle v{triangleList[3*i],
@@ -134,7 +134,7 @@ bool BFS(vector<int> adj[], int src, int dest, int v, int pred[], int dist[]){
     while (!queue.empty()) {
         int u = queue.front();
         queue.pop_front();
-        for (int i = 0; i < adj[u].size(); i++) {
+        for (unsigned int i = 0; i < adj[u].size(); i++) {
             if (!visited[adj[u][i]]) {
                 visited[adj[u][i]] = true;
                 dist[adj[u][i]] = dist[u] + 1;
@@ -164,40 +164,44 @@ void bfsPath(vector<unsigned int> &path, vector<int> adj[], int s,
         path.push_back(pred[crawl]);
         crawl = pred[crawl];
     }
+    __d_bfs = dist[dest];
+}
 
-    cout << "\tCantidad de triangulos en el camino: "<< dist[dest]<<endl;
+void MinPathBFS(vector<unsigned int> &path, CornerTable *CT, int o, int d) {
 
-    cout << "\n\tCamino mas corto encontrado: \n";
+	auto start = high_resolution_clock::now();
+
+    vector<int> adjmat[CT->getNumTriangles()];
+    buildAdjMatBFS(CT, adjmat);
+
+    auto stop1 = high_resolution_clock::now();
+
+    duration<double> diff1 = duration_cast<microseconds>(stop1 - start);
+
+    bfsPath(path, adjmat, o, d, CT->getNumTriangles());
+
+    auto stop2 = high_resolution_clock::now();
+
+    duration<double> diff2 = duration_cast<microseconds>(stop2 - stop1);
+
+    cout << "__________________[CAMINO ENCONTRADO]__________________"<<endl;
+    cout << "\t(*) Cantidad de triangulos en el camino: "<< __d_bfs<<endl;
+    cout << "\t(*) Tiempo en calculo de Mat. Adyacencia: "<<diff1.count()<<" seg."<<endl;
+    cout << "\t(*) Tiempo en Algoritmo BFS: "<<diff2.count()<<" seg."<<endl;
+    cout << "\t(*) Camino mas corto encontrado: "<<endl;
     for (int i=path.size()-1; i>0; i--)
         cout << path[i] << " -> ";
     cout<<path[0]<<endl;
 }
 
-void MinPathBFS(vector<unsigned int> &path, CornerTable *CT, int o, int d) {
-    vector<int> adjmat[CT->getNumTriangles()];
-    buildAdjMatBFS(CT, adjmat);
-    bfsPath(path, adjmat, o, d, CT->getNumTriangles());
-}
-
 
 /*  ------------ ALGORITMO DIJKSTRA ------------ */
-
-// void PrintPathPred(vector<unsigned int> pred, int o, int d){
-//     cout<<"Camino: "<<endl;
-//     int r = pred[d];
-//     cout<<d<<" <- ";
-//     while(r > -1 && r != o){
-//         cout<<r<<" <- ";
-//         r = pred[r];
-//     }
-//     cout<<o<<endl;
-// }
 
 int minCost(vector<unsigned int> cost, vector<bool> marked){
     int min = INF;
     int i_min = -1;
     for (unsigned int i=0; i<cost.size(); i++){
-        if (!marked[i] && cost[i]<min){
+        if (!marked[i] && cost[i]<(unsigned int)min){
             min = cost[i];
             i_min = i;
         }
@@ -237,20 +241,24 @@ void buildAdjMat(CornerTable* CT, vector<vector<unsigned int>> &adjMat){
     unsigned int numTriangles = CT->getNumTriangles();
     adjMat.resize(numTriangles);
     fill(adjMat.begin(), adjMat.end(), vector<unsigned int>(numTriangles, 0));
+    vector<int> count(numTriangles, 0);
 
     for (unsigned int i=0; i<numTriangles; i++){
+    	if (count[i]==3) continue;
         Triangle v{triangleList[3*i],
                 triangleList[3*i + 1],
                 triangleList[3*i + 2]
                 };
         for (unsigned int j=i+1; j<numTriangles; j++){
-            Triangle comp{triangleList[3*j],
+        	if (count[j]==3) continue;
+        	Triangle comp{triangleList[3*j],
                         triangleList[3*j + 1],
                         triangleList[3*j + 2]
                         };
             if (isConected(v, comp)){
                 adjMat[i][j] = 1;
                 adjMat[j][i] = 1;
+                count[i]++; count[j]++;
             }
         }
     }
@@ -258,7 +266,12 @@ void buildAdjMat(CornerTable* CT, vector<vector<unsigned int>> &adjMat){
 
 void MinPathDijkstra(vector<unsigned int> &path, CornerTable *CT, int o, int d) {
 
-    vector<vector<unsigned int>> adjmat; buildAdjMat(CT, adjmat);
+	auto start = high_resolution_clock::now();
+
+	vector<vector<unsigned int>> adjmat; buildAdjMat(CT, adjmat);
+
+    auto stop1 = high_resolution_clock::now();
+    duration<double> diff1 = duration_cast<microseconds>(stop1 - start);
 
     if (CT->getNumTriangles() < 20){ // imprime la matriz de adyacencia solo si no es tan grande
         cout<<"\nMatriz de adyacencia: "<<endl;
@@ -278,11 +291,15 @@ void MinPathDijkstra(vector<unsigned int> &path, CornerTable *CT, int o, int d) 
         r = pred[r];
     }
     path.push_back(o);
-    cout << "__________________[CAMINO ENCONTRADO]__________________"<<endl;
-    cout << "\tCantidad de triangulos en el camino: "<<path.size()-1<<endl;
-    cout << "\tCamino mas corto encontrado: \n";
-    cout << "_______________________________________________________"<<endl;
 
+    auto stop2 = high_resolution_clock::now();
+    duration<double> diff2 = duration_cast<microseconds>(stop2 - stop1);
+
+    cout << "__________________[CAMINO ENCONTRADO]__________________"<<endl;
+    cout << "\t(*) Cantidad de triangulos en el camino: "<<path.size()-1<<endl;
+    cout << "\t(*) Tiempo en calculo de Mat. Adyacencia: "<<diff1.count()<<" seg."<<endl;
+    cout << "\t(*) Tiempo en Algoritmo de Dijkstra: "<<diff2.count()<<" seg."<<endl;
+    cout << "\t(*) Camino mas corto encontrado: \n";
     for (int i=path.size()-1; i>0; i--)
         cout << path[i] << " -> ";
     cout<<path[0]<<endl;
