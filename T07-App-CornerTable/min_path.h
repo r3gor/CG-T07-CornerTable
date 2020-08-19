@@ -32,55 +32,55 @@ bool isConected(Triangle A, Triangle B){
 /* Algoritmo Floyd Warshall */
 
 // Valor arbitario (PARAMETRIZAR DESPUES)
-#define verticesGrafo 4
-
-// Imprime los caminos encontrados en el grafo
-void imprimirMatrizDistancias(int distancias[][verticesGrafo]){
-	for(int i=0; i<verticesGrafo; i++){
-	        cout << "Nodo " << i << ": ";
-	        for(int j=0; j<verticesGrafo; j++){
-	            if(distancias[i][j] == INF){
-	                cout << "-" << "->";
-	            }
-	            else{
-	                cout << distancias[i][j] << "->";
-	            }
-	        }
-	        cout << "FIN" << endl;
-	    }
-}
+//#define verticesGrafo 4
+//
+//// Imprime los caminos encontrados en el grafo
+//void imprimirMatrizDistancias(int distancias[][verticesGrafo]){
+//	for(int i=0; i<verticesGrafo; i++){
+//	        cout << "Nodo " << i << ": ";
+//	        for(int j=0; j<verticesGrafo; j++){
+//	            if(distancias[i][j] == INF){
+//	                cout << "-" << "->";
+//	            }
+//	            else{
+//	                cout << distancias[i][j] << "->";
+//	            }
+//	        }
+//	        cout << "FIN" << endl;
+//	    }
+//}
 
 // Calcula los caminos encontrados en el grafo
-void floydWarshall(int grafo[][verticesGrafo]){
-	// matriz de salida donde se guardan las distancias mas cortas entre 2 vertices
-	    int distancias[verticesGrafo][verticesGrafo];
-
-	    // definimos 3 iteradores
-	    int i,j,k;
-
-	    // inicializar matriz de salida
-	    for(i=0; i<verticesGrafo; i++){
-	        for(j=0; j<verticesGrafo; j++){
-	            distancias[i][j] = grafo[i][j];
-	        }
-	    }
-
-	    // se agnaden uno a uno los vertices a un set de vertices intermedios.
-	    for(k=0; k<verticesGrafo; k++){
-	        // se toma a los vertices como entrada
-	        for(i=0; i<verticesGrafo; i++){
-	            // se toma a los vertices como salida
-	            for(j=0; j<verticesGrafo; j++){
-	                // si el vertice k esta en el camino mas corto desde i hacia j
-	                // se guardan en la matriz distancias (se actualiza la matriz)
-	                if(distancias[i][k] + distancias[k][j] < distancias[i][j]){
-	                    distancias[i][j] = distancias[i][k] + distancias[k][j];
-	                }
-	            }
-	        }
-	    }
-	    imprimirMatrizDistancias(distancias);
-}
+//void floydWarshall(int grafo[][verticesGrafo]){
+//	// matriz de salida donde se guardan las distancias mas cortas entre 2 vertices
+//	    int distancias[verticesGrafo][verticesGrafo];
+//
+//	    // definimos 3 iteradores
+//	    int i,j,k;
+//
+//	    // inicializar matriz de salida
+//	    for(i=0; i<verticesGrafo; i++){
+//	        for(j=0; j<verticesGrafo; j++){
+//	            distancias[i][j] = grafo[i][j];
+//	        }
+//	    }
+//
+//	    // se agnaden uno a uno los vertices a un set de vertices intermedios.
+//	    for(k=0; k<verticesGrafo; k++){
+//	        // se toma a los vertices como entrada
+//	        for(i=0; i<verticesGrafo; i++){
+//	            // se toma a los vertices como salida
+//	            for(j=0; j<verticesGrafo; j++){
+//	                // si el vertice k esta en el camino mas corto desde i hacia j
+//	                // se guardan en la matriz distancias (se actualiza la matriz)
+//	                if(distancias[i][k] + distancias[k][j] < distancias[i][j]){
+//	                    distancias[i][j] = distancias[i][k] + distancias[k][j];
+//	                }
+//	            }
+//	        }
+//	    }
+//	    imprimirMatrizDistancias(distancias);
+//}
 
 /*  ------------ ALGORITMO BFS ------------ */
 
@@ -174,7 +174,8 @@ void bfsPath(vector<unsigned int> &path, vector<int> adj[], int s,
 }
 
 void MinPathBFS(vector<unsigned int> &path, CornerTable *CT, int o, int d) {
-    vector<int> adjmat[CT->getNumTriangles()]; buildAdjMatBFS(CT, adjmat);
+    vector<int> adjmat[CT->getNumTriangles()];
+    buildAdjMatBFS(CT, adjmat);
     bfsPath(path, adjmat, o, d, CT->getNumTriangles());
 }
 
