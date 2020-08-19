@@ -22,6 +22,8 @@
 #define numEBOs 2
 
 #define PI 3.14
+#define DIJKSTRA 1
+#define BFS 2
 double normalize = 1;
 
 using namespace std;
@@ -31,10 +33,8 @@ GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 GLuint ebo[numEBOs];
 
-// float cameraX = 0.0f, cameraY = 0.0f, cameraZ = 0.8f; // grid cam 2D
-float cameraX = 0.0f, cameraY = 0.0f, cameraZ = 1.0f; // sphere cam 3D
-// float cameraX = 0.0f, cameraY = 0.0f, cameraZ = 9.0f; // torus cam 3D
-float objLocX = 0.0f, objLocY = 0.0f, objLocZ = 0.0f; // first person cam
+float cameraX = 0.0f, cameraY = 0.0f, cameraZ = 1.0f;
+float objLocX = 0.0f, objLocY = 0.0f, objLocZ = 0.0f;
 
 int width, heigth;
 float aspect;
@@ -45,6 +45,8 @@ string offFilePath = "offFiles/torus.off";
 vector<unsigned int> path_indices;
 string descFile = "";
 int o, d;
+int op_model;
+int op_algor;
 
 /*------------------------------CONTROLES---------------------------*/
 bool dragging = false;
@@ -62,10 +64,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE){
         dragging = false;
     }
-
-    // if(button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS){
-    //     transf = glm::mat4(1.0f);
-    // }
 }
 
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos){
@@ -116,23 +114,17 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 
 void readMeshFiles() {
-    // string filePath = "offFiles/torus.off";
-    // string filePath = "offFiles/sphere.off";
-    // string filePath = "offFiles/grid.off";
-
-    ifstream fin(offFilePath);
+    ifstream fin("offFiles/"+offFilePath);
     cout<<"[LOG]\tFichero OFF cargado"<<endl;
-    //First Line OFF
+
     string name;
-    //Second Line
     int npoint, ntriangle, var3;
-    // npoint +1 Line edges that form triangle
     int var0;
+
     fin>>name;
     fin>>npoint>>ntriangle>>var3;
     cout<<"[LOG]\tCantidades leidas"<<endl;
 
-    /* Llenamos la lista de puntos */
     double* vertexList = new double[3*npoint];
     for (int i = 0; i < npoint; ++i){
         fin>>vertexList[3*i]>>vertexList[3*i+1]>>vertexList[3*i+2];
@@ -140,13 +132,11 @@ void readMeshFiles() {
         normalize = max(normalize, abs(vertexList[3*i+1]));
         normalize = max(normalize, abs(vertexList[3*i+2]));
     }
-    cout<<"normalize: "<<normalize;
     cout<<"[LOG]\tVertices leidos"<<endl;
 
     const CornerType numberTriangles = ntriangle;
     const CornerType numberVertices = npoint;
     
-    /* Fill the list with all the points */
     CornerType* triangleList = new CornerType[3*ntriangle];
     for (int i = 0; i <ntriangle; ++i)
         fin>>var0>>triangleList[i*3]>>triangleList[i*3+1]>>triangleList[i*3+2];
@@ -158,7 +148,6 @@ void readMeshFiles() {
         numberTriangles, numberVertices, numberCoordinatesByVertex);
     cout<<"[LOG]\tCorner Table creada"<<endl<<endl;
     
-    /* Especificaciones */
     descFile +="_________________________[OFF]_________________________ \n";
     descFile +="\t\t (*) File: " + offFilePath + "\n";
     descFile +="\t\t (*) Num vertices: " + to_string(npoint) + "\n";
@@ -183,23 +172,14 @@ void buildPath(int o, int d){
     vector<unsigned int> path;
     const CornerType *trianglesPositions = CT->getTriangleList();
 
-    min_path_BFS(path, CT, o, d);
-    //min_path(path, CT, o, d);
+    if (op_algor == DIJKSTRA) MinPathDijkstra(path, CT, o, d);
+    if (op_algor == BFS)      MinPathBFS(path, CT, o, d);
 
-    //PrintDijkstraPath(path, o ,d);
-
-    int aux = path[d];
-    path_indices.push_back(trianglesPositions[d*3]);
-    path_indices.push_back(trianglesPositions[d*3 + 1]);
-    path_indices.push_back(trianglesPositions[d*3 + 2]);
-
-    while(aux>-1){
-        path_indices.push_back(trianglesPositions[aux*3]);
-        path_indices.push_back(trianglesPositions[aux*3 + 1]);
-        path_indices.push_back(trianglesPositions[aux*3 + 2]);
-        aux = path[aux];
+    for(unsigned int i =0; i<path.size(); i++){
+        path_indices.push_back(trianglesPositions[path[i]*3]);
+        path_indices.push_back(trianglesPositions[path[i]*3 + 1]);
+        path_indices.push_back(trianglesPositions[path[i]*3 + 2]);
     }
-
 }
 
 void setupVertices(void) {
@@ -387,31 +367,62 @@ void display(GLFWwindow *window, double currentTime) {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
+vector<string> offFiles = {{
+    "3dsphere.off",
+    "3dtorus.off",
+    "2dgrid.off",
+    "mesh2.off",
+    "mesh3.off",
+    "mesh4.off",
+    "mesh5.off",
+    "mesh6.off",
+    "mesh7.off",
+    "mesh8.off",
+    "mesh9.off",
+    "mesh10.off",
+    "mesh11.off",
+    "mesh12.off",
+    "mesh13.off",
+    "mesh14.off",
+    "mesh15.off",
+    "mesh16.off",
+    "mesh17.off",
+    "mesh18.off",
+    "mesh19.off",
+    "mesh20.off",
+    "mesh21.off",
+    "mesh22.off",
+    "mesh23.off",
+    "mesh24.off",
+    "mesh25.off",
+    "mesh26.off",
+}};
+
 int main() {
 
     system("cls");
-    int op_model;
     cout<<"_________________[Modelos disponibles]_________________"<<endl;
-    cout<<"\t 1. [2D]GRID "<<endl;
-    cout<<"\t 2. [3D]SPHERE"<<endl;
-    cout<<"\t 3. [3D]TORUS"<<endl;
+    for(unsigned int i=0; i<offFiles.size(); i++){
+        if (i==0) cout<<"\t[3D Models]"<<endl;
+        if (i==2) cout<<"\t[2D Models]"<<endl;
+        cout<<"\t"<<(i+1)<<". "<<offFiles[i]<<endl;
+    }
     cout<<"_______________________________________________________"<<endl;
     cout<<"Opcion: "; cin>>op_model;
-    if (op_model == 1){
-        offFilePath = "offFiles\\grid.off";
-        normalize = 0.5*0.5*0.25;
-    }
-    if (op_model == 2) offFilePath = "offFiles\\sphere.off";
-    if (op_model == 3) offFilePath = "offFiles\\torus.off";
-
+    if (op_model == 1) normalize = 0.5*0.5*0.25;
+    offFilePath = offFiles[op_model-1];
     readMeshFiles();
     cout<<endl;
-    cout<<"\t\t..:: CAMINO MINIMO ENTRE 2 TRIANGULOS ::.."<<endl;
+    cout<<"________________[Algoritmos disponibles]_______________"<<endl;
+    cout<<"\t 1. Dijkstra - Tiempo: O()"<<endl;
+    cout<<"\t 2. Breadth First Search (BFS) - Tiempo: O()"<<endl;
+    cout<<"_______________________________________________________"<<endl;
+    cout<<"Opcion: "; cin>>op_algor;
+    cout<<"_______________[Calculo del Camino Minimo]_____________"<<endl;
     cout<<endl;
-    cout<<"\t(*) Ingrese el triangulo de origen (0-"<<CT->getNumTriangles()-1<<"): ";
-    cin>>o;
-    cout<<"\t(*) Ingrese el triangulo de destino (0-"<<CT->getNumTriangles()-1<<"): ";
-    cin>>d;
+    cout<<"\t(*) Ingrese el triangulo de origen (0-"<<CT->getNumTriangles()-1<<"): "; cin>>o;
+    cout<<"\t(*) Ingrese el triangulo de destino (0-"<<CT->getNumTriangles()-1<<"): "; cin>>d;
+    cout<<"_______________________________________________________"<<endl;
 
     if (!glfwInit()) exit(EXIT_FAILURE);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);

@@ -99,48 +99,39 @@ void bfsPath(vector<unsigned int> &path, vector<vector<unsigned int>> adj, int s
         cout << "El origen y el destino no estan conectados.";
         return;
     }
-
     // vector path stores the shortest path
-    int crawl = dest;
-    path.resize(adj.size());
-    fill(path.begin(), path.end(), -1);
-    path.push_back(crawl);
-    while (pred[crawl] != -1) {
-        path.push_back(pred[crawl]);
-        crawl = pred[crawl];
-    }
+        int crawl = dest;
+        path.push_back(crawl);
+        while (pred[crawl] != -1) {
+            path.push_back(pred[crawl]);
+            crawl = pred[crawl];
+        }
 
-    // distance from source is in distance array
-    cout << "Shortest path length is : "
-         << dist[dest];
+        // distance from source is in distance array
+        cout << "Shortest path length is : "
+             << dist[dest];
 
-    // printing path from source to destination
-    cout << "\nPath is::\n";
-    for (int i = path.size() - 1; i >= 0; i--)
-        cout << path[i] << " ";
+        // printing path from source to destination
+        cout << "\nPath is::\n";
+        for (int i=path.size()-1; i>0; i--)
+            cout << path[i] << " -> ";
+        cout<<path[0]<<endl;
 }
 
-void min_path_BFS(vector<unsigned int> &path, CornerTable *CT, int o, int d) {
-
+void MinPathBFS(vector<unsigned int> &path, CornerTable *CT, int o, int d) {
     vector<vector<unsigned int>> adjmat; buildAdjMatBFS(CT, adjmat);
     bfsPath(path, adjmat, o, d, CT->getNumTriangles());
-    //DijkstraPath(path, adjmat, o, d);
 }
 
 
-
-
-
-
-//ALGORITMO DIJKSTRA
-
-void PrintDijkstraPath(vector<unsigned int> path, int o, int d){
+// ALGORITMO DIJKSTRA
+void PrintPathPred(vector<unsigned int> pred, int o, int d){
     cout<<"Camino: "<<endl;
-    int r = path[d];
+    int r = pred[d];
     cout<<d<<" <- ";
     while(r > -1 && r != o){
         cout<<r<<" <- ";
-        r = path[r];
+        r = pred[r];
     }
     cout<<o<<endl;
 }
@@ -157,12 +148,12 @@ int minCost(vector<unsigned int> cost, vector<bool> marked){
     return i_min;
 }
 
-void DijkstraPath(vector<unsigned int> &path, vector<vector<unsigned int>> adjmat, int i, int d){
+void DijkstraPath(vector<unsigned int> &pred, vector<vector<unsigned int>> adjmat, int i, int d){
 
     vector<bool> marked(adjmat.size(), 0);
     vector<unsigned int> cost(adjmat.size(), INF);
-    path.resize(adjmat.size());
-    fill(path.begin(), path.end(), -1);
+    pred.resize(adjmat.size());
+    fill(pred.begin(), pred.end(), -1);
 
     cost[i] = 0;
 
@@ -178,7 +169,7 @@ void DijkstraPath(vector<unsigned int> &path, vector<vector<unsigned int>> adjma
             if (marked[j] || !adjmat[i_node][j]) continue;
             if (cost[i_node] + adjmat[i_node][j] < cost[j]){
                 cost[j] =  cost[i_node] + adjmat[i_node][j];
-                path[j] = i_node;
+                pred[j] = i_node;
             }
         }
     }
@@ -208,7 +199,7 @@ void buildAdjMat(CornerTable* CT, vector<vector<unsigned int>> &adjMat){
     }
 }
 
-void min_path(vector<unsigned int> &path, CornerTable *CT, int o, int d) {
+void MinPathDijkstra(vector<unsigned int> &path, CornerTable *CT, int o, int d) {
 
     vector<vector<unsigned int>> adjmat; buildAdjMat(CT, adjmat);
 
@@ -221,8 +212,15 @@ void min_path(vector<unsigned int> &path, CornerTable *CT, int o, int d) {
             cout<<endl;
         }
     }
-
-    DijkstraPath(path, adjmat, o, d);
-    // PrintDijkstraPath(path, o, d);
+    vector<unsigned int> pred;
+    DijkstraPath(pred, adjmat, o, d);
+    PrintPathPred(pred, o, d);
+    int r = pred[d];
+    path.push_back(d);
+    while(r > -1 && r != o){
+        path.push_back(r);
+        r = pred[r];
+    }
+    path.push_back(o);
 }
 
