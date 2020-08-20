@@ -36,7 +36,7 @@ GLuint vbo[numVBOs];
 GLuint ebo[numEBOs];
 
 float cameraX = 0.0f, cameraY = 0.0f, cameraZ = 1.0f;
-float objLocX = 0.0f, objLocY = 0.0f, objLocZ = 0.0f;
+float objLocX = -0.3f, objLocY = 0.0f, objLocZ = 0.0f;
 
 int width, heigth;
 float aspect;
@@ -100,6 +100,19 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 {
     if (key == GLFW_KEY_R && action == GLFW_PRESS)
         transf = glm::mat4(1.0f);
+
+    double vel = 0.15/zoom;
+    if ((key == GLFW_KEY_LEFT || key == GLFW_KEY_A) && action == GLFW_PRESS)
+            transf = glm::translate(transf, glm::vec3(-vel, 0.0, 0.0));
+
+    if ((key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) && action == GLFW_PRESS)
+            transf = glm::translate(transf, glm::vec3(+vel, 0.0, 0.0));
+
+    if ((key == GLFW_KEY_UP || key == GLFW_KEY_W) && action == GLFW_PRESS)
+            transf = glm::translate(transf, glm::vec3(0.0, vel, 0.0));
+
+    if ((key == GLFW_KEY_DOWN || key == GLFW_KEY_S) && action == GLFW_PRESS)
+			transf = glm::translate(transf, glm::vec3(0.0, -vel, 0.0));
 }
 /*------------------------------------------------------------------*/
 
@@ -109,9 +122,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     PRINT_PATH = true,
     PRINT_PATH_TRIANG_BORDER = true,
     PRINT_VERT = false;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-    ImVec4 surf_color = ImVec4(0.7f, 0.75f, 0.4f, 1.00f);
-    ImVec4 path_color = ImVec4(0.0f, 0.0f, 0.00f, 1.00f);
+    ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 1.00);
+    ImVec4 surf_color = ImVec4(62.f/255.f, 60.f/255.f, 165.0f/255.f, 1.00f);
+    ImVec4 path_color = ImVec4(217.f/255.f, 255.f/255.f, 0.00f, 1.00f);
 
 /*---------- -------------------------------------------------------*/
 
@@ -246,7 +259,7 @@ void display(GLFWwindow *window, double currentTime) {
     ImGui::NewFrame();
 
     ImGui::Begin("Camino mas corto en CornerTable - GUI");
-    ImGui::Text("Pintar:");
+    ImGui::Text("PINTAR:");
     ImGui::Checkbox("Camino minimo encontrado", &PRINT_PATH);
     ImGui::Checkbox("Bordes de triangulos en el Camino minimo", &PRINT_PATH_TRIANG_BORDER);
     ImGui::Checkbox("Todos los vertices", &PRINT_VERT);
@@ -257,27 +270,36 @@ void display(GLFWwindow *window, double currentTime) {
     ImGui::ColorEdit3("Color de fondo", (float*)&clear_color);
 
 
-    if (ImGui::CollapsingHeader("Controles")){
-        ImGui::Text("Transformaciones:");
+    if (ImGui::CollapsingHeader("Transformaciones")){
+
+        ImGui::Text("Controles:");
         ImGui::Indent();
-        ImGui::Text("Rotaciones:");
-        string t;
-        t  = "Click derecho y arrastre con el\n"+
-        t += "mouse en forma vertical para girar\n"+
-        t += "en el eje X";
-        ImGui::BulletText(t.c_str());
-
-        t = "";
-        t += "Click derecho y arrastre con el\n"+
-        t += "mouse en forma horizontal para\n"+
-        t += "girar en el eje Y";
-        ImGui::BulletText(t.c_str());
-
-        ImGui::BulletText("Presione 'D' para deshacer todas\nlas rotaciones");
+			ImGui::Text("ROTACIONES:");
+			string t;
+			t  = "EJE X: Click derecho y arrastre\n";
+			t += "el mouse en forma vertical \n";
+			ImGui::BulletText(t.c_str());
+			t  = "EJE Y: Click derecho y arrastre\n";
+			t += "el mouse en forma horizontal\n";
+			ImGui::BulletText(t.c_str());
+			ImGui::BulletText("Presione 'D' para deshacer todas\nlas rotaciones");
         ImGui::Unindent();
+
         ImGui::Indent();
-        ImGui::Text("Zoom in/out:");
-        ImGui::BulletText("Haga zoom con el scroll\nde su mouse");
+			ImGui::Text("TRASLACIONES:");
+			t = "IZQUIERDA: Flecha Izqui. o 'A'\n";
+			ImGui::BulletText(t.c_str());
+			t = "DERECHA: Flecha Derecha. o 'D'\n";
+			ImGui::BulletText(t.c_str());
+			t = "ARRIBA: Flecha Arriba o 'W'\n";
+			ImGui::BulletText(t.c_str());
+			t = "ABAJO: Flecha Abajo o 'D'\n";
+			ImGui::BulletText(t.c_str());
+        ImGui::Unindent();
+
+        ImGui::Indent();
+			ImGui::Text("ZOOM in/out:");
+			ImGui::BulletText("Use el scroll de su mouse");
         ImGui::Unindent();
         ImGui::Separator();
     }
@@ -287,8 +309,26 @@ void display(GLFWwindow *window, double currentTime) {
         ImGui::Separator();
     }
 
+    if (ImGui::CollapsingHeader("Autores")){
+    	ImGui::Text("\t\t\t\t\t\t  UNMSM"  );
+    	ImGui::Text("\t\t\t\t\t    FISI 2020");
+    	ImGui::Indent();
+			ImGui::Text("\t\t\t\tCOMPUTACION GRAFICA");
+			ImGui::Text("Profesor");
+			ImGui::BulletText("Herminio Paucar Curasma (@hpaucar)");
+			ImGui::Text("Alumnos");
+			ImGui::BulletText("Galarza Arevalo, Jonathan");
+			ImGui::BulletText("Hidalgo Diaz, Sebastian Eduardo");
+			ImGui::BulletText("Moquillaza Alcarraz, Santiago Yovany");
+			ImGui::BulletText("Ramos Paredes, Roger Anthony");
+			ImGui::BulletText("Rios Jaimes, Jhonel Enrique");
+			ImGui::BulletText("Villarreal Doroteo, Omar");
+			ImGui::Separator();
+		ImGui::Unindent();
+    }
+
     ImGui::Separator();
-    ImGui::Text("Promedio de aplicación %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::Text("Promedio de aplicacion %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::Separator();
     ImGui::End();
 
@@ -422,7 +462,10 @@ int main() {
     }
     cout<<"_______________________________________________________"<<endl;
     cout<<"Opcion: "; cin>>op_model;
+
+    if (op_model == 1) normalize = 1.2;
     if (op_model == 3) normalize = 0.5*0.5*0.25;
+
     offFilePath = offFiles[op_model-1];
     readMeshFiles();
     cout<<endl;
@@ -440,7 +483,7 @@ int main() {
     if (!glfwInit()) exit(EXIT_FAILURE);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-    GLFWwindow * window = glfwCreateWindow(800, 800, "CG-T07-CornerTable", NULL, NULL);
+    GLFWwindow * window = glfwCreateWindow(1400, 800, "CG-T07-CornerTable", NULL, NULL);
     glfwMakeContextCurrent(window);
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
